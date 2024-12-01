@@ -146,12 +146,34 @@ async function getUserPosts(userId) {
     }
 }
 
-function getUser() {
-
+async function getUser(userId) {
+    try {
+        const response = await fetch('https://jsonplaceholder.typicode.com/users');
+        const jsonUserData = await response.json();
+        const user = jsonUserData.find((user) => {
+            if (user.id === userId)
+                return user;
+        })
+        return user;
+    }
+    catch {
+        return undefined;
+    }
 }
 
-function getPostComments {
-
+async function getPostComments(postId) {
+    try {
+        const response = await fetch('https://jsonplaceholder.typicode.com/comments');
+        const jsonCommentData = await response.json();
+        const comments = jsonCommentData.filter((comment) => {
+            if (comment.postId === postId)
+                return comment;
+        })
+        return comments;
+    }
+    catch {
+        return undefined;
+    }
 }
 
 function toggleComments() {
