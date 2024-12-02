@@ -10,9 +10,9 @@ function createElemWithText(sName, tContent, cName) {
     if (cName !== undefined)
         this.className = cName;
 
-    const newElem = document.createElement(stringName);
+    const newElem = document.createElement(this.stringName);
     newElem.textContent = this.textContent;
-    if (className !== "")
+    if (this.className !== "")
         newElem.className = this.className;
 
     return newElem;
@@ -176,6 +176,98 @@ async function getPostComments(postId) {
     }
 }
 
-function toggleComments() {
-    return;
+async function displayComments(postId) {
+    const sectionElem = document.createElement("section");
+    sectionElem.dataset.postId;
+    sectionElem.classList.add("comments");
+    sectionElem.classList.add("hide");
+    const comments = await getPostComments(postId);
+    const fragment = createComments(comments);
+    sectionElem.append(fragment)
 }
+
+async function createPosts(data) {
+    const fragmentElem = document.createDocumentFragment();
+    data.forEach(async (post) => {
+        const articleElem = document.createElement("article");
+        const h2Elem = post.title;
+        const pElemPostBody = post.body;
+        const pElemPostId = `Post ID: ${post.id}`;
+        const author = await getUser(post.userId);
+        const pElemAuthor = `Author: ${author.name} with ${author.company.name}`;
+        const pElemCompanyPhrase = author.company.catchPhrase;
+        const button = document.createElement("button");
+        button.textContent("Show Comments");
+        button.dataset.postId = post.id;
+        articleElem.append(h2Elem);
+        articleElem.append(pElemPostBody);
+        articleElem.append(pElemPostId);
+        articleElem.append(pElemAuthor);
+        articleElem.append(pElemCompanyPhrase);
+        articleElem.append(button);
+        const section = await displayComments(post.id);
+        articleElem.append(section);
+        fragmentElem.append(articleElem);
+    });
+    return fragmentElem;
+}
+
+async function displayPosts(data) {
+    const mainElem = document.querySelector("main");
+    let element;
+    if (data)
+        element = await createPosts(data);
+    else{
+        element = document.createElement("p");
+        element.textContent = "Select an Employee to display their posts.";
+    }
+    mainElem.append(element);
+    return element;
+
+}
+
+function toggleComments(event, postId) {
+    event.target.listener = true;
+    const arr = [];
+    arr.append(toggleCommentSection(postId));
+    arr.append(toggleCommentButton(postId));
+    return arr;
+}
+
+async function refreshPosts(data) {
+    const arr = [];
+    arr.append(removeButtonListeners());
+    arr.append(deleteChildElements(document.querySelector("main")));
+    arr.append(await displayPosts(data));
+    arr.append(addButtonListeners());
+    return arr;
+}
+
+async function selectMenuChangeEventHandler(event) {
+    const arr = [];
+    const selectMenu = document.getElementById("selectMenu");
+    selectMenu.disabled = true;
+    const userId = event.target.value || 1;
+    arr.append(userId);
+    const userPosts = await getUserPosts(userId);
+    arr.append(userPosts);
+    arr.append(await refreshPosts(userPosts));
+    selectMenu.disabled = false;
+    return arr;
+}
+
+async function initPage() {
+    const arr = [];
+    const users = await getUsers();
+    arr.append(users);
+    arr.append(populateSelectMenu(users));
+    return arr;
+}
+
+async function initApp() {
+    await initPage();
+    const selectMenu = document.getElementById("selectMenu");
+    selectMenu.addEventListener("change", selectMenuChangeEventHandler(event));
+}
+
+document.addEventListener("DOMContentLoaded", initApp());
