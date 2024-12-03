@@ -143,10 +143,7 @@ async function getUserPosts(userId) {
     try {
         const response = await fetch('https://jsonplaceholder.typicode.com/posts');
         const jsonPostData = await response.json();
-        const posts = jsonPostData.filter((post) => {
-            if (post.userId === userId)
-                return post;
-        });
+        const posts = jsonPostData.filter(post => post.userId === Number(userId));
         return posts;
     }
     catch {
@@ -229,8 +226,9 @@ async function createPosts(data) {
 async function displayPosts(data) {
     const mainElem = document.querySelector("main");
     let element;
-    if (data)
+    if (data){
         element = await createPosts(data);
+    }
     else{
         element = document.createElement("p");
         element.textContent = "Select an Employee to display their posts.";
@@ -265,14 +263,16 @@ async function refreshPosts(data) {
 async function selectMenuChangeEventHandler(event) {
     if (!event?.target)
         return undefined;
-    const userId = event.target.value || 1;
+    let userId = event.target.value || 1;
+    if (userId === "Employees")
+        userId = '1';
     event.target.disabled = true;
-    let arr = [];
-    const postsArr = await getUserPosts(userId);
-    const refreshPostsArr = await refreshPosts(postsArr);
-    arr.push(userId, postsArr, refreshPostsArr);
+    console.log("Selected userId:", userId);
+    const posts = await getUserPosts(userId);
+    const refreshPostsArr = await refreshPosts(posts);
+    console.log("Event handler result:", { userId, posts, refreshPostsArr });
     event.target.disabled = false;
-    return arr;
+    return [userId, posts, refreshPostsArr];
 }
 
 async function initPage() {
@@ -286,6 +286,7 @@ async function initPage() {
 async function initApp() {
     await initPage();
     const selectMenu = document.getElementById("selectMenu");
+    console.log("Adding event listener to select menu.");
     selectMenu.addEventListener("change", selectMenuChangeEventHandler);
 }
 
